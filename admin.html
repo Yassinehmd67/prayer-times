@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>لوحة التحكم - Prayer Times Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="./assets/styles.css" />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      .page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      header h1 {
+        font-size: 1.6rem;
+        margin: 0;
+      }
+      header p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+      .card {
+        background: #020617;
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+        border: 1px solid #1f2937;
+      }
+      .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: #e5e7eb;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.9rem;
+        color: #e5e7eb;
+      }
+      input[type="text"],
+      input[type="number"],
+      input[type="password"],
+      select {
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #4b5563;
+        background: #020617;
+        color: #e5e7eb;
+        font-size: 0.9rem;
+      }
+      input:focus,
+      select:focus {
+        outline: 2px solid #22c55e;
+        outline-offset: 1px;
+        border-color: transparent;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .row > div {
+        flex: 1;
+        min-width: 160px;
+      }
+      button {
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+        background: #22c55e;
+        color: #022c22;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+      button.secondary {
+        background: #1f2937;
+        color: #e5e7eb;
+      }
+      button.danger {
+        background: #b91c1c;
+        color: #fee2e2;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .small {
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+      }
+      th,
+      td {
+        padding: 0.35rem 0.4rem;
+        border-bottom: 1px solid #1f2937;
+        text-align: right;
+      }
+      th {
+        color: #e5e7eb;
+        background: #020617;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .tag {
+        display: inline-flex;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        border: 1px solid #4b5563;
+        color: #e5e7eb;
+      }
+      .tag.plan-free {
+        border-color: #4b5563;
+      }
+      .tag.plan-plus {
+        border-color: #eab308;
+        color: #facc15;
+      }
+      .tag.plan-pro {
+        border-color: #f97316;
+        color: #fed7aa;
+      }
+      .tag.enabled {
+        border-color: #22c55e;
+        color: #bbf7d0;
+      }
+      .tag.disabled {
+        border-color: #b91c1c;
+        color: #fecaca;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        direction: ltr;
+        text-align: left;
+      }
+      .flex-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .scroll-y {
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 999px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        color: #9ca3af;
+      }
+      .pill span.value {
+        color: #22c55e;
+        font-weight: 600;
+      }
+      .status-ok {
+        color: #22c55e;
+      }
+      .status-error {
+        color: #f97316;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>🛠️ لوحة تحكم الأدمين - Prayer Times API</h1>
+        <p>
+          هذه الصفحة مخصّصة للأدمين فقط لإنشاء مفاتيح <code>API Key</code>،
+          متابعة الخطط، وتفعيل/إيقاف المفاتيح.
+        </p>
+      </header>
+
+      <!-- بطاقة الدخول (سر الأدمين) -->
+      <section class="card">
+        <div class="card-title">🔐 سر الأدمين</div>
+        <p class="small">
+          ضع هنا القيمة السرية المطابقة للمتغير
+          <code>ADMIN_SECRET</code> في Cloudflare Worker.
+          <strong>لا يتم حفظ هذا السر في GitHub</strong>، وإنما فقط في
+          <code>sessionStorage</code> على هذا المتصفح.
+        </p>
+        <div class="row">
+          <div>
+            <label for="admin-secret-input">Admin Secret:</label>
+            <input
+              type="password"
+              id="admin-secret-input"
+              placeholder="مثال: super-secret-admin-token"
+              autocomplete="off"
+            />
+          </div>
+          <div style="align-self: flex-end;">
+            <button id="save-admin-secret-btn" class="secondary">
+              💾 حفظ في الجلسة الحالية
+            </button>
+          </div>
+        </div>
+        <p class="small muted" id="admin-secret-status">
+          لم يتم حفظ السر بعد.
+        </p>
+      </section>
+
+      <!-- إنشاء مفتاح جديد -->
+      <section class="card">
+        <div class="card-title">➕ إنشاء مفتاح جديد</div>
+        <form id="create-key-form">
+          <div class="row">
+            <div>
+              <label for="plan-select">الخطة (plan):</label>
+              <select id="plan-select">
+                <option value="free">Free</option>
+                <option value="plus">Plus</option>
+                <option value="pro">Pro</option>
+              </select>
+            </div>
+            <div>
+              <label for="quota-input">الحد الشهري (monthly_quota):</label>
+              <input
+                type="number"
+                id="quota-input"
+                placeholder="مثال: 1000 أو 20000"
+                step="1"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 0.5rem;">
+            <div>
+              <label for="days-valid-input">
+                عدد الأيام لصلاحية المفتاح (اختياري، 0 = بدون انتهاء):
+              </label>
+              <input
+                type="number"
+                id="days-valid-input"
+                placeholder="مثال: 30"
+                step="1"
+                min="0"
+              />
+            </div>
+            <div>
+              <label for="note-input">ملاحظة (اختياري):</label>
+              <input
+                type="text"
+                id="note-input"
+                placeholder="مثال: مسجد الحي، تطبيق فلان..."
+              />
+            </div>
+          </div>
+
+          <button type="submit" id="create-key-btn">🚀 إنشاء المفتاح</button>
+        </form>
+
+        <div class="small" style="margin-top: 0.5rem;">
+          المفتاح الناتج سيظهر في الجدول بالأسفل ويمكن نسخه للمستخدم.
+        </div>
+
+        <div
+          id="create-key-result"
+          class="small muted"
+          style="margin-top: 0.4rem;"
+        ></div>
+      </section>
+
+      <!-- قائمة المفاتيح -->
+      <section class="card">
+        <div class="flex-row">
+          <div class="card-title">📋 قائمة مفاتيح الـ API</div>
+          <button id="refresh-keys-btn" class="secondary">🔄 تحديث القائمة</button>
+        </div>
+        <p class="small">
+          هذا الجدول يستعمل مسار
+          <code>/api/admin/keys</code>
+          في الـ Worker. يمكنك من هنا تفعيل/إيقاف المفاتيح أو نسخ قيمتها.
+        </p>
+
+        <div class="scroll-y">
+          <table>
+            <thead>
+              <tr>
+                <th>المفتاح</th>
+                <th>الخطة</th>
+                <th>استخدام / كوتا</th>
+                <th>الحالة</th>
+                <th>الصلاحية</th>
+                <th>ملاحظات</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="keys-table-body">
+              <tr>
+                <td colspan="7" class="small muted">
+                  لا توجد بيانات بعد. اضغط "تحديث القائمة".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p
+          id="keys-status"
+          class="small muted"
+          style="margin-top: 0.4rem;"
+        ></p>
+      </section>
+    </div>
+
+    <script type="module" src="./src/admin.js"></script>
+  </body>
+</html>

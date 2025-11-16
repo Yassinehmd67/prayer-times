@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>لوحة الأدمين - Prayer Times API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="./assets/styles.css" />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      .page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      header {
+        margin-bottom: 1.5rem;
+      }
+      header h1 {
+        font-size: 1.6rem;
+        margin: 0 0 0.4rem;
+      }
+      header p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+      .card {
+        background: #020617;
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+        border: 1px solid #1f2937;
+      }
+      .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.85rem;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #4b5563;
+        background: #020617;
+        color: #e5e7eb;
+        font-size: 0.9rem;
+      }
+      input:focus,
+      select:focus {
+        outline: 2px solid #22c55e;
+        outline-offset: 1px;
+        border-color: transparent;
+      }
+      button {
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+        background: #22c55e;
+        color: #022c22;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .small {
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .row > div {
+        flex: 1;
+        min-width: 180px;
+      }
+      pre {
+        background: #020617;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.75rem;
+        overflow-x: auto;
+        border: 1px solid #111827;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      .danger {
+        color: #fecaca;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 999px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        color: #9ca3af;
+      }
+      .pill span.value {
+        color: #22c55e;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>🔐 لوحة الأدمين — مفاتيح Prayer Times API</h1>
+        <p>
+          هذه الصفحة مخصّصة لك فقط (صاحب المنصة) لإنشاء وتعديل مفاتيح
+          <code>pt_...</code> عبر نقطة النهاية <code>/api/admin</code>.
+        </p>
+        <p class="small danger">
+          ⚠️ لا تشارك كلمة مرور الأدمين مع أي شخص، ولا تفتح هذه الصفحة على أجهزة غير موثوقة.
+        </p>
+      </header>
+
+      <!-- بطاقة كلمة مرور الأدمين -->
+      <section class="card">
+        <div class="card-title">🗝️ كلمة مرور الأدمين</div>
+        <label for="admin-password">أدخل كلمة المرور الإدارية:</label>
+        <input
+          type="password"
+          id="admin-password"
+          placeholder="أدخل كلمة مرور الأدمين هنا"
+          autocomplete="off"
+        />
+        <p class="small muted">
+          يتم إرسال هذه الكلمة في الهيدر
+          <code>X-Admin-Password</code>
+          إلى الـ Worker. لا يتم حفظها في المتصفح.
+        </p>
+      </section>
+
+      <!-- إنشاء مفتاح جديد -->
+      <section class="card">
+        <div class="card-title">➕ إنشاء مفتاح جديد</div>
+        <div class="row">
+          <div>
+            <label for="create-plan">الخطة (plan):</label>
+            <select id="create-plan">
+              <option value="free">free (1000 طلب/شهر)</option>
+              <option value="plus">plus (20000 طلب/شهر)</option>
+              <option value="pro" selected>pro (50000 طلب/شهر)</option>
+            </select>
+          </div>
+          <div>
+            <label for="create-quota">
+              الكوتا الشهرية (monthly_quota):
+              <span class="small muted">(اختياري)</span>
+            </label>
+            <input
+              type="number"
+              id="create-quota"
+              placeholder="اتركه فارغًا لاستعمال القيمة الافتراضية للخطة"
+            />
+          </div>
+        </div>
+        <div class="row" style="margin-top: 0.4rem;">
+          <div>
+            <label for="create-expires">
+              تاريخ الانتهاء (expires_at):
+              <span class="small muted">(اختياري، بصيغة YYYY-MM-DD)</span>
+            </label>
+            <input
+              type="text"
+              id="create-expires"
+              placeholder="مثال: 2025-12-31 أو اتركه فارغًا للافتراضي"
+            />
+          </div>
+        </div>
+        <button id="create-key-btn">🧾 إنشاء مفتاح جديد</button>
+        <p class="small muted">
+          لو تركت تاريخ الانتهاء فارغًا:
+          <br />
+          • <strong>free</strong>: بدون تاريخ انتهاء (null) <br />
+          • <strong>plus/pro</strong>: افتراضيًا 30 يوم من الآن.
+        </p>
+      </section>
+
+      <!-- قراءة بيانات مفتاح -->
+      <section class="card">
+        <div class="card-title">🔎 قراءة بيانات مفتاح موجود</div>
+        <label for="get-key-input">مفتاح API:</label>
+        <input
+          type="text"
+          id="get-key-input"
+          placeholder="pt_XXXXXXXXXXXXXXXX"
+        />
+        <button id="get-key-btn">📥 جلب بيانات المفتاح</button>
+      </section>
+
+      <!-- تحديث مفتاح -->
+      <section class="card">
+        <div class="card-title">✏️ تحديث مفتاح موجود</div>
+        <label for="update-key-input">مفتاح API المراد تعديله:</label>
+        <input
+          type="text"
+          id="update-key-input"
+          placeholder="pt_XXXXXXXXXXXXXXXX"
+        />
+
+        <div class="row" style="margin-top:0.4rem;">
+          <div>
+            <label for="update-plan">
+              الخطة الجديدة (plan):
+              <span class="small muted">(اختياري)</span>
+            </label>
+            <select id="update-plan">
+              <option value="">(بدون تغيير)</option>
+              <option value="free">free</option>
+              <option value="plus">plus</option>
+              <option value="pro">pro</option>
+            </select>
+          </div>
+          <div>
+            <label for="update-quota">
+              الكوتا الشهرية الجديدة (monthly_quota):
+              <span class="small muted">(اختياري)</span>
+            </label>
+            <input
+              type="number"
+              id="update-quota"
+              placeholder="اتركه فارغًا للإبقاء على القيمة الحالية"
+            />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:0.4rem;">
+          <div>
+            <label for="update-expires">
+              تاريخ الانتهاء الجديد (expires_at):
+              <span class="small muted">
+                (اختياري — اتركه فارغًا للإبقاء على التاريخ الحالي، اكتب
+                <code>none</code> لمسح تاريخ الانتهاء)
+              </span>
+            </label>
+            <input
+              type="text"
+              id="update-expires"
+              placeholder="مثال: 2026-01-31 أو none أو فارغ"
+            />
+          </div>
+        </div>
+
+        <button id="update-key-btn">💾 حفظ التعديلات</button>
+      </section>
+
+      <!-- مخرجات/نتائج -->
+      <section class="card">
+        <div class="card-title">🧪 نتيجة آخر طلب (Response)</div>
+        <p class="small muted">
+          هنا تظهر نتيجة آخر طلب أدمين (create / get / update) بصيغة JSON.
+        </p>
+        <pre id="admin-output">{}</pre>
+      </section>
+    </div>
+
+    <script type="module" src="./src/admin.js"></script>
+  </body>
+</html>

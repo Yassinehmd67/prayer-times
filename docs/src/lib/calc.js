@@ -31,7 +31,9 @@ function normalizeAngleDeg(a) {
 function formatTimeFromMinutes(baseUtcDate, minutesUtc, tzOffsetMinutes) {
   if (minutesUtc == null || !Number.isFinite(minutesUtc)) return null;
   const ms = minutesUtc * 60 * 1000;
-  const date = new Date(baseUtcDate.getTime() + ms + tzOffsetMinutes * 60 * 1000);
+  const date = new Date(
+    baseUtcDate.getTime() + ms + tzOffsetMinutes * 60 * 1000
+  );
 
   const h = date.getHours().toString().padStart(2, "0");
   const m = date.getMinutes().toString().padStart(2, "0");
@@ -81,7 +83,10 @@ function solarCoordinates(jd) {
     280.46646 + 36000.76983 * T + 0.0003032 * T * T
   );
   const M =
-    357.52911 + 35999.05029 * T - 0.0001537 * T * T - 0.00000048 * T * T * T;
+    357.52911 +
+    35999.05029 * T -
+    0.0001537 * T * T -
+    0.00000048 * T * T * T;
   const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T;
 
   const C =
@@ -91,14 +96,18 @@ function solarCoordinates(jd) {
 
   const lambda = L0 + C;
   const epsilon =
-    23.439291 - 0.0130042 * T - 0.0000001639 * T * T + 0.0000005036 * T * T * T;
+    23.439291 -
+    0.0130042 * T -
+    0.0000001639 * T * T +
+    0.0000005036 * T * T * T;
 
   const sinDelta = Math.sin(d2r(epsilon)) * Math.sin(d2r(lambda));
   const delta = Math.asin(sinDelta);
 
   const y = Math.tan(d2r(epsilon / 2)) ** 2;
   const E =
-    (4 * RAD2DEG) *
+    4 *
+    RAD2DEG *
     (y * Math.sin(2 * d2r(L0)) -
       2 * e * Math.sin(d2r(M)) +
       4 * e * y * Math.sin(d2r(M)) * Math.cos(2 * d2r(L0)) -
@@ -136,6 +145,9 @@ export const DEFAULT_METHOD = {
   id: "mwl",
   name: "رابطة العالم الإسلامي (MWL)",
   fajrAngle: 18,
+  // يمكن لبعض الطرق استعمال فجر ثابت قبل الشروق بدل الزاوية:
+  // مثال في أم القرى: ≈ 105 دقيقة قبل الشروق
+  fajrFixedMinutesBeforeSunrise: null,
   ishaAngle: 17,
   ishaFixedMinutes: null,
   asrMethod: "standard", // "standard" (مثل)، "hanafi" (مثليْن)
@@ -149,43 +161,55 @@ export const METHOD_PRESETS = {
     id: "mwl",
     name: "رابطة العالم الإسلامي (MWL)",
     fajrAngle: 18,
+    fajrFixedMinutesBeforeSunrise: null,
     ishaAngle: 17,
     ishaFixedMinutes: null,
     highLatRule: "middle_of_night",
   },
+
+  // ✅ أقرب إلى تقويم أم القرى:
+  // - الفجر: 105 دقيقة قبل الشروق (ثابت، لا يعتمد على زاوية)
+  // - العشاء: 90 دقيقة بعد المغرب
+  // - بدون قاعدة عروض عليا خاصة (none)
   makkah: {
     ...DEFAULT_METHOD,
     id: "makkah",
     name: "أم القرى - مكة المكرمة",
-    // فجر زاوية، عشاء 90 دقيقة بعد المغرب (مقاربة شائعة)
-    fajrAngle: 18.5,
-    ishaAngle: 0,
+    fajrAngle: null,
+    fajrFixedMinutesBeforeSunrise: 105,
+    ishaAngle: null,
     ishaFixedMinutes: 90,
-    highLatRule: "middle_of_night",
+    highLatRule: "none",
   },
+
   isna: {
     ...DEFAULT_METHOD,
     id: "isna",
     name: "ISNA - أمريكا الشمالية",
     fajrAngle: 15,
+    fajrFixedMinutesBeforeSunrise: null,
     ishaAngle: 15,
     ishaFixedMinutes: null,
     highLatRule: "angle_based",
   },
+
   egypt: {
     ...DEFAULT_METHOD,
     id: "egypt",
     name: "الهيئة المصرية العامة للمساحة",
     fajrAngle: 19.5,
+    fajrFixedMinutesBeforeSunrise: null,
     ishaAngle: 17.5,
     ishaFixedMinutes: null,
     highLatRule: "seventh_of_night",
   },
+
   karachi: {
     ...DEFAULT_METHOD,
     id: "karachi",
     name: "جامعة العلوم الإسلامية - كراتشي",
     fajrAngle: 18,
+    fajrFixedMinutesBeforeSunrise: null,
     ishaAngle: 18,
     ishaFixedMinutes: null,
     highLatRule: "seventh_of_night",
@@ -227,7 +251,10 @@ function applyHighLatAdjustments(
     return { fajrMinutes, ishaMinutes };
   }
 
-  const nightLength = computeNightLengthMinutes(sunriseMinutes, maghribMinutes);
+  const nightLength = computeNightLengthMinutes(
+    sunriseMinutes,
+    maghribMinutes
+  );
   if (!nightLength || nightLength <= 0) {
     return { fajrMinutes, ishaMinutes };
   }
@@ -242,7 +269,10 @@ function applyHighLatAdjustments(
       case "seventh_of_night":
         return 1 / 7;
       case "angle_based":
-        return (method.fajrAngle || 18) / 60;
+        // إن لم يُعرّف fajrAngle نستخدم 18 كافتراضي
+        return ((typeof method.fajrAngle === "number"
+          ? method.fajrAngle
+          : 18) / 60);
       default:
         return 0;
     }
@@ -256,12 +286,15 @@ function applyHighLatAdjustments(
         return 1 / 7;
       case "angle_based":
         if (method.ishaFixedMinutes != null) return 0;
-        return (method.ishaAngle || 17) / 60;
+        return ((typeof method.ishaAngle === "number"
+          ? method.ishaAngle
+          : 17) / 60);
       default:
         return 0;
     }
   }
 
+  // إذا فشلنا في حساب فجر زاوي في العروض العليا، نستعمل portion من الليل
   if (fajr == null || !Number.isFinite(fajr)) {
     const portion = portionForFajr();
     if (portion > 0) {
@@ -269,6 +302,7 @@ function applyHighLatAdjustments(
     }
   }
 
+  // نفس الشيء للعشاء (فقط إذا لم يكن ثابتًا بالدقائق)
   if (
     (isha == null || !Number.isFinite(isha)) &&
     method.ishaFixedMinutes == null
@@ -329,14 +363,28 @@ export function computePrayerTimes(dateLocal, coords, options = {}) {
   const maghribUtcMinutes = timeForAltitude(altSunriseSunset, false);
 
   // الفجر
-  let fajrUtcMinutes = timeForAltitude(-method.fajrAngle, true);
+  let fajrUtcMinutes = null;
+  if (
+    method.fajrFixedMinutesBeforeSunrise != null &&
+    sunriseUtcMinutes != null
+  ) {
+    // فجر ثابت قبل الشروق (مثلاً في أم القرى)
+    fajrUtcMinutes =
+      sunriseUtcMinutes - method.fajrFixedMinutesBeforeSunrise;
+  } else if (typeof method.fajrAngle === "number") {
+    fajrUtcMinutes = timeForAltitude(-method.fajrAngle, true);
+  } else {
+    fajrUtcMinutes = null;
+  }
 
   // العشاء
   let ishaUtcMinutes = null;
   if (method.ishaFixedMinutes != null && maghribUtcMinutes != null) {
     ishaUtcMinutes = maghribUtcMinutes + method.ishaFixedMinutes;
-  } else {
+  } else if (typeof method.ishaAngle === "number") {
     ishaUtcMinutes = timeForAltitude(-method.ishaAngle, false);
+  } else {
+    ishaUtcMinutes = null;
   }
 
   // العصر: مثل/مثليْن
@@ -361,7 +409,11 @@ export function computePrayerTimes(dateLocal, coords, options = {}) {
   ishaUtcMinutes = adjusted.ishaMinutes;
 
   // تحويل إلى أوقات محلية
-  const fajr = formatTimeFromMinutes(baseUtcDate, fajrUtcMinutes, tzOffsetMinutes);
+  const fajr = formatTimeFromMinutes(
+    baseUtcDate,
+    fajrUtcMinutes,
+    tzOffsetMinutes
+  );
   const sunrise = formatTimeFromMinutes(
     baseUtcDate,
     sunriseUtcMinutes,
@@ -372,13 +424,21 @@ export function computePrayerTimes(dateLocal, coords, options = {}) {
     dhuhrUtcMinutes,
     tzOffsetMinutes
   );
-  const asr = formatTimeFromMinutes(baseUtcDate, asrUtcMinutes, tzOffsetMinutes);
+  const asr = formatTimeFromMinutes(
+    baseUtcDate,
+    asrUtcMinutes,
+    tzOffsetMinutes
+  );
   const maghrib = formatTimeFromMinutes(
     baseUtcDate,
     maghribUtcMinutes,
     tzOffsetMinutes
   );
-  const isha = formatTimeFromMinutes(baseUtcDate, ishaUtcMinutes, tzOffsetMinutes);
+  const isha = formatTimeFromMinutes(
+    baseUtcDate,
+    ishaUtcMinutes,
+    tzOffsetMinutes
+  );
 
   return {
     meta: {
