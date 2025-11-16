@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>حساب المواقيت - Prayer Times Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="./assets/styles.css" />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      .page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      header h1 {
+        font-size: 1.7rem;
+        margin: 0;
+      }
+      header p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.95rem;
+      }
+      .card {
+        background: #020617;
+        border-radius: 0.75rem;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1rem;
+        border: 1px solid #1f2937;
+      }
+      .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+        font-weight: 600;
+        color: #e5e7eb;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.9rem;
+        color: #e5e7eb;
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #4b5563;
+        background: #020617;
+        color: #e5e7eb;
+        font-size: 0.9rem;
+      }
+      input:focus,
+      select:focus {
+        outline: 2px solid #22c55e;
+        outline-offset: 1px;
+        border-color: transparent;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .row > div {
+        flex: 1;
+        min-width: 140px;
+      }
+      button {
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        border: none;
+        font-size: 0.9rem;
+        cursor: pointer;
+        background: #22c55e;
+        color: #022c22;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+      button.secondary {
+        background: #1f2937;
+        color: #e5e7eb;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .small {
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 999px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        color: #9ca3af;
+      }
+      .pill span.value {
+        color: #22c55e;
+        font-weight: 600;
+      }
+      pre {
+        background: #020617;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.75rem;
+        overflow-x: auto;
+        border: 1px solid #111827;
+      }
+      .flex-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      table.times {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.4rem;
+      }
+      table.times td {
+        padding: 0.35rem 0.1rem;
+        font-size: 0.9rem;
+      }
+      table.times td.label {
+        color: #e5e7eb;
+      }
+      table.times td.time {
+        text-align: left;
+        direction: ltr;
+        font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        color: #a5b4fc;
+      }
+
+      /* تسعير */
+      .pricing-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+      }
+      .pricing-card {
+        flex: 1;
+        min-width: 200px;
+        border-radius: 0.75rem;
+        padding: 0.7rem;
+        border: 1px solid #1f2937;
+        background: #020617;
+      }
+      .pricing-card h3 {
+        margin: 0 0 0.3rem;
+        font-size: 1rem;
+      }
+      .pricing-card.featured {
+        border-color: #22c55e;
+        background: #022c22;
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+      }
+      .pricing-badge {
+        font-size: 0.75rem;
+        background: #16a34a;
+        color: #ecfdf5;
+        padding: 0.05rem 0.35rem;
+        border-radius: 999px;
+        margin-right: 0.3rem;
+      }
+            .pricing-card.current-plan {
+        outline: 2px solid #fbbf24;
+        outline-offset: 2px;
+      }
+      .pricing-card.current-plan h3::after {
+        content: " (الخطة المستخدمة الآن)";
+        font-size: 0.75rem;
+        color: #fbbf24;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>🕰️ أداة المواقيت (نسخة تجريبية)</h1>
+        <p>
+          هذه واجهة أولية لتجربة ربط الواجهة مع الـ API والحساب الفلكي محليًا مع
+          طرق حساب مختلفة (MWL، أم القرى، ISNA...) وإعدادات مخصّصة وتصدير شهر كامل.
+        </p>
+      </header>
+
+      <!-- بطاقة مفتاح الـ API -->
+      <section class="card" id="api-card">
+        <div class="flex-row">
+          <div class="card-title">🔑 مفتاح الاشتراك (API Key)</div>
+          <span class="pill">
+            الخطة:
+            <span class="value" id="plan-label">free</span>
+          </span>
+        </div>
+        <label for="api-key-input">أدخل مفتاح الـ API (اختياري الآن):</label>
+        <input
+          type="text"
+          id="api-key-input"
+          placeholder="pt_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+          autocomplete="off"
+        />
+        <button id="save-key-btn">حفظ المفتاح في المتصفح</button>
+        <p class="small">
+          يتم تخزين المفتاح محليًا في جهازك فقط (LocalStorage). ستظهر حالة الخطة
+          والاستهلاك إن كان المفتاح صالحًا.
+        </p>
+        <div id="usage-info" class="small muted"></div>
+      </section>
+
+      <!-- بطاقة الموقع -->
+      <section class="card">
+        <div class="card-title">📍 تحديد الموقع</div>
+        <form id="location-form">
+          <label for="location-query">اكتب اسم المدينة أو المكان:</label>
+          <input
+            type="text"
+            id="location-query"
+            placeholder="مثال: Tanger, Morocco"
+          />
+          <button type="submit" id="location-submit-btn">
+            🔍 بحث عن الإحداثيات
+          </button>
+        </form>
+
+        <div class="small">
+          أو يمكنك إدخال الإحداثيات يدويًا (درجة عشرية):
+        </div>
+
+        <form id="coords-form">
+          <div class="row">
+            <div>
+              <label for="lat-input">خط العرض (lat):</label>
+              <input
+                type="number"
+                step="0.000001"
+                id="lat-input"
+                placeholder="35.76"
+              />
+            </div>
+            <div>
+              <label for="lon-input">خط الطول (lon):</label>
+              <input
+                type="number"
+                step="0.000001"
+                id="lon-input"
+                placeholder="-5.83"
+              />
+            </div>
+          </div>
+          <button type="submit" class="secondary">
+            ✅ اعتماد هذه الإحداثيات
+          </button>
+        </form>
+
+        <div id="geo-result" class="small" style="margin-top: 0.6rem"></div>
+      </section>
+
+      <!-- بطاقة الارتفاع والطقس -->
+      <section class="card">
+        <div class="card-title">⛰️ الارتفاع و 🌦️ حالة الطقس (اختياري)</div>
+        <button id="fetch-elev-btn" class="secondary">
+          ⛰️ جلب الارتفاع عن سطح البحر
+        </button>
+        <button id="fetch-weather-btn" class="secondary">
+          🌦️ جلب الطقس (حرارة/ضغط...)
+        </button>
+        <div id="elev-result" class="small" style="margin-top: 0.6rem"></div>
+        <div id="weather-result" class="small" style="margin-top: 0.6rem"></div>
+      </section>
+
+      <!-- بطاقة مواقيت اليوم + اختيار الطريقة -->
+      <section class="card" id="prayer-card">
+        <div class="flex-row">
+          <div class="card-title">🕌 مواقيت اليوم (حسب الموقع الحالي)</div>
+          <span class="pill">
+            التاريخ:
+            <span class="value" id="date-label">—</span>
+          </span>
+        </div>
+
+        <div class="row" style="margin-bottom: 0.6rem">
+          <div>
+            <label for="method-select">طريقة الحساب:</label>
+            <select id="method-select">
+              <option value="mwl">رابطة العالم الإسلامي (MWL)</option>
+              <option value="makkah">أم القرى - مكة المكرمة</option>
+              <option value="isna">ISNA - أمريكا الشمالية</option>
+              <option value="egypt">الهيئة المصرية</option>
+              <option value="karachi">كراتشي</option>
+              <option value="custom">طريقة مخصّصة (Custom)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- لوحة إعدادات الطريقة المخصّصة -->
+        <div
+          id="custom-method-panel"
+          class="small"
+          style="margin-top: 0.4rem; display: none"
+        >
+          <div class="row">
+            <div>
+              <label for="custom-fajr-angle">زاوية الفجر (°):</label>
+              <input
+                type="number"
+                step="0.1"
+                id="custom-fajr-angle"
+                placeholder="18"
+              />
+            </div>
+            <div>
+              <label for="custom-isha-angle">زاوية العشاء (°):</label>
+              <input
+                type="number"
+                step="0.1"
+                id="custom-isha-angle"
+                placeholder="17"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="custom-isha-fixed"
+                >وقت ثابت للعشاء بعد المغرب (دقائق، اختياري):</label
+              >
+              <input
+                type="number"
+                step="1"
+                id="custom-isha-fixed"
+                placeholder="اتركه فارغًا لاستعمال الزاوية"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="custom-asr-method">طريقة العصر:</label>
+              <select id="custom-asr-method">
+                <option value="standard">مثل (شافعي/مالكي/حنبلي)</option>
+                <option value="hanafi">مثليْن (حنفي)</option>
+              </select>
+            </div>
+            <div>
+              <label for="custom-highlat">قاعدة العروض العليا:</label>
+              <select id="custom-highlat">
+                <option value="middle_of_night">نصف الليل</option>
+                <option value="seventh_of_night">سبع الليل</option>
+                <option value="angle_based">حسب الزاوية (angle/60)</option>
+                <option value="none">بدون قاعدة خاصة</option>
+              </select>
+            </div>
+          </div>
+          <p class="small muted">
+            💾 يتم حفظ هذه الإعدادات المخصّصة في هذا المتصفح تلقائيًا، ويمكنك
+            تغييرها في أي وقت من هنا.
+          </p>
+        </div>
+
+        <p class="small">
+          يتم الحساب فلكيًا في المتصفح اعتمادًا على الإحداثيات والارتفاع ووقت
+          جهازك الحالي وطريقة الحساب المختارة.
+        </p>
+
+        <button id="compute-times-btn">🧮 احسب المواقيت لليوم</button>
+
+        <table class="times">
+          <tbody>
+            <tr>
+              <td class="label">الفجر</td>
+              <td class="time" id="time-fajr">--:--</td>
+            </tr>
+            <tr>
+              <td class="label">الشروق</td>
+              <td class="time" id="time-sunrise">--:--</td>
+            </tr>
+            <tr>
+              <td class="label">الظهر</td>
+              <td class="time" id="time-dhuhr">--:--</td>
+            </tr>
+            <tr>
+              <td class="label">العصر</td>
+              <td class="time" id="time-asr">--:--</td>
+            </tr>
+            <tr>
+              <td class="label">المغرب</td>
+              <td class="time" id="time-maghrib">--:--</td>
+            </tr>
+            <tr>
+              <td class="label">العشاء</td>
+              <td class="time" id="time-isha">--:--</td>
+            </tr>
+          </tbody>
+        </table>
+        <div
+          id="prayer-meta"
+          class="small muted"
+          style="margin-top: 0.4rem"
+        ></div>
+      </section>
+
+      <!-- بطاقة تصدير شهر كامل -->
+      <section class="card">
+        <div class="card-title">📤 تصدير مواقيت شهر كامل (محليًا)</div>
+        <div class="row">
+          <div>
+            <label for="export-year">السنة:</label>
+            <input
+              type="number"
+              id="export-year"
+              placeholder="2025"
+              step="1"
+            />
+          </div>
+          <div>
+            <label for="export-month">الشهر:</label>
+            <select id="export-month">
+              <option value="1">محرم / يناير (1)</option>
+              <option value="2">صفر / فبراير (2)</option>
+              <option value="3">ربيع الأول / مارس (3)</option>
+              <option value="4">ربيع الآخر / أبريل (4)</option>
+              <option value="5">جمادى الأولى / مايو (5)</option>
+              <option value="6">جمادى الآخرة / يونيو (6)</option>
+              <option value="7">رجب / يوليو (7)</option>
+              <option value="8">شعبان / أغسطس (8)</option>
+              <option value="9">رمضان / سبتمبر (9)</option>
+              <option value="10">شوال / أكتوبر (10)</option>
+              <option value="11">ذو القعدة / نوفمبر (11)</option>
+              <option value="12">ذو الحجة / ديسمبر (12)</option>
+            </select>
+          </div>
+        </div>
+        <p class="small">
+          الحساب يتم في المتصفح بناءً على نفس الإحداثيات وطريقة الحساب الحالية،
+          ثم يتم تحميل الملف مباشرة بدون إرسال البيانات إلى أي خادم إضافي.
+        </p>
+        <button id="export-csv-btn" class="secondary">
+          📄 تحميل ملف CSV
+        </button>
+        <button id="export-json-btn" class="secondary">
+          🧾 تحميل ملف JSON
+        </button>
+        <button id="export-ics-btn" class="secondary">
+          📅 تحميل ملف iCal (.ics)
+        </button>
+        <div
+          id="export-status"
+          class="small muted"
+          style="margin-top: 0.4rem"
+        ></div>
+      </section>
+
+      <!-- بطاقة خطط الاشتراك (Pricing) -->
+             <!-- بطاقة خطط الاشتراك (Pricing) -->
+      <section class="card">
+        <div class="card-title">💳 خطط الاشتراك</div>
+        <p class="small">
+          يمكنك استعمال الأداة مجانًا على الخطة <strong>Free</strong>، أو
+          ترقية اشتراكك إلى <strong>Plus</strong> أو <strong>Pro</strong> حسب
+          احتياجك. تفعيل الخطة المدفوعة يتم عبر التواصل مع صاحب الأداة
+          وإرسال مفتاح الاشتراك (API Key) الذي تستلمه بعد الدفع.
+        </p>
+
+        <div class="pricing-grid" id="pricing-grid">
+          <!-- خطة Free -->
+          <div class="pricing-card" data-plan="free">
+            <h3>🟦 Free</h3>
+            <p class="small" style="margin: 0 0 0.4rem;">
+              للاستخدام الشخصي والتجربة.
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ حتى <strong>1000</strong> طلب في الشهر
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ حساب المواقيت في المتصفح
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ استخدام API بدون مفتاح (حدود بسيطة)
+            </p>
+            <p class="small muted" style="margin: 0.4rem 0 0;">
+              💰 السعر: <strong>مجاني</strong>
+            </p>
+          </div>
+
+          <!-- خطة Plus -->
+          <div class="pricing-card featured" data-plan="plus">
+            <h3>
+              🟨 Plus
+              <span class="pricing-badge">الخطة الموصى بها</span>
+            </h3>
+            <p class="small" style="margin: 0 0 0.4rem;">
+              للمطورين والمساجد الصغيرة والتطبيقات الخفيفة.
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ حتى <strong>20000</strong> طلب في الشهر
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ دعم <strong>High Latitude</strong>
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ استخدام كامل لنقاط النهاية
+              <code>/geocode</code>,
+              <code>/elevation</code>,
+              <code>/weather</code>
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ تصدير شهر كامل (CSV / JSON / ICS)
+            </p>
+            <p class="small muted" style="margin: 0.4rem 0 0;">
+              💰 السعر المقترح:
+              <strong>3 دولار / شهر</strong>
+              (أو <strong>30 دولار / سنة</strong>)
+            </p>
+          </div>
+
+          <!-- خطة Pro -->
+          <div class="pricing-card" data-plan="pro">
+            <h3>🟥 Pro</h3>
+            <p class="small" style="margin: 0 0 0.4rem;">
+              للتطبيقات الاحترافية والمشاريع الكبيرة.
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ حتى <strong>50000</strong> أو <strong>100000</strong> طلب في
+              الشهر (حسب الاتفاق)
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ إعدادات متقدمة للمواقيت والدقة
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ دعم فني مباشر + إمكانية مفاتيح خاصة
+            </p>
+            <p class="small" style="margin: 0 0 0.2rem;">
+              ✅ مرونة في زيادة الكوتا شهريًا
+            </p>
+            <p class="small muted" style="margin: 0.4rem 0 0;">
+              💰 السعر المقترح:
+              <strong>7 – 10 دولار / شهر</strong>
+              (أو <strong>70 – 100 دولار / سنة</strong>)
+            </p>
+          </div>
+        </div>
+
+        <p class="small muted" style="margin-top: 0.6rem;">
+          🧾 طريقة التفعيل المقترحة: يتواصل المستخدم معك (مثلًا عبر
+          <strong>Telegram</strong>)، يختار الخطة المناسبة، يتم الدفع، تقوم
+          أنت بإنشاء مفتاح بالباكند عبر <code>/api/admin</code>، ثم ترسل له
+          المفتاح <code>pt_...</code> ليضعه في خانة
+          <strong>API Key</strong> في أعلى الصفحة.
+        </p>
+      </section>
+
+      <!-- بطاقة نتائج خام (debug) -->
+      <section class="card">
+        <div class="card-title">🧪 بيانات خام (للاختبار)</div>
+        <div class="small muted">
+          هنا نعرض ملخّص الإحداثيات والارتفاع والطقس وبعض معلومات المواقيت.
+        </div>
+        <pre id="debug-output">{}</pre>
+      </section>
+    </div>
+
+    <!-- نقطة الدخول للفرونت (كل المنطق في src/main.js و ui/app.js) -->
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
